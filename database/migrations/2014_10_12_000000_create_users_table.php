@@ -18,12 +18,12 @@ class CreateUsersTable extends Migration
             $table->text('usu_usu')->unique();
             $table->text('usu_pas');
             $table->integer('per_ide');
-            $table->integer('est_ado');
-            $table->integer('usu_cre');
-            $table->timestamp('fec_cre');
-            $table->integer('usu_mod');
-            $table->timestamp('fec_mod');
-            $table->rememberToken();
+            $table->integer('est_ado')->nullable()->default(1);
+            $table->integer('usu_cre')->nullable();
+            $table->date('fec_cre')->nullable();
+            $table->integer('usu_mod')->nullable();
+            $table->date('fec_mod')->nullable();
+            $table->rememberToken()->nullable();
         });
     }
 

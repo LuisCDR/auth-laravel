@@ -6,7 +6,9 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\ValidationException;
+use Laravel\Fortify\Features;
 
 class AuthController extends Controller
 {
@@ -39,8 +41,7 @@ class AuthController extends Controller
 
     public function logout()
     {
-        $user = auth()->user();
-        $user->tokens()->delete();
+        Session::flush();
         return response()->json([
             "message" => "logged out successfully"
         ], 200);

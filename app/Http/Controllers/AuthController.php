@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Actions\Fortify\CreateNewUser;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Features;
 
@@ -24,24 +26,36 @@ class AuthController extends Controller
 
             $user->tokens()->delete();
 
-            if (!$user || !Hash::check($data["usu_pas"], $user->usu_pas)) {
-                throw ValidationException::withMessages(['usu_usu' => 'credentials are incorrect']);
+            // if (!$user || !Hash::check($data["usu_pas"], $user->usu_pas)) {
+            //     throw ValidationException::withMessages(['usu_usu' => 'credentials are incorrect']);
                 
+            // }
+            try {
+                // $user = User::where('usu_usu', $request->usu_usu)->first();
+
+                if ($user && Hash::check($data['usu_pas'], $user->usu_pas)) {
+                    Auth::login($user);
+                    $token = $user->createToken($user->usu_usu)->plainTextToken;
+                    return response()->json([
+                        "message" => "login successful",
+                        "auth_token" => $token,
+                        "token_type" => "Bearer"
+                    ]);
+                }
+                return "credentials are incorrect";
+
+            } catch (\Throwable $th) {
+                return $th->getTrace();
             }
 
-            $token = $user->createToken($data["usu_usu"])->plainTextToken;
-
-            return response()->json([
-                "message" => "login successful",
-                "auth_token" => $token,
-                "token_type" => ""
-            ]);
         }
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
         Session::flush();
+        $user = $request->user();
+        $user->tokens()->delete();
         return response()->json([
             "message" => "logged out successfully"
         ], 200);
@@ -55,15 +69,27 @@ class AuthController extends Controller
         } else {
             $data = $validator->validated();
             $user = (new CreateNewUser)->create($data);
-            return response()->json([], 204);
+            return response()->json([], 201);
         }
+    }
+
+    public function unauthorized()
+    {
+        return response()->json([
+            'success' => false,
+            'message' => 'Usuario no autenticado',
+            'data' => []
+        ], 401);
     }
 
     private function rules()
     {
         return [
             'usu_usu' => 'required|string',
-            'usu_pas' => 'required|string'
+            'usu_pas' => 'required|string',
+            'per_ide' => [
+                Rule::requiredIf(request()->routeIs('/register'))
+                ]
         ];
     }
     private function attributes()

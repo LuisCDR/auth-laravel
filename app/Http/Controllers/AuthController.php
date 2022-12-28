@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Features;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {

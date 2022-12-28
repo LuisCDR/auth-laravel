@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Notas;
+use App\Policies\NotasPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -14,6 +16,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         // 'App\Model' => 'App\Policies\ModelPolicy',
+        Notas::class => NotasPolicy::class
     ];
 
     /**
@@ -26,5 +29,9 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         //
+        Gate::define('getNota', [NotasPolicy::class, 'view']);
+        Gate::define('viewAnyNotas', [NotasPolicy::class, 'viewAny']);
+        Gate::define('createNotas', [NotasPolicy::class, 'create']);
+        Gate::define('updateNotas', [NotasPolicy::class, 'update']);
     }
 }

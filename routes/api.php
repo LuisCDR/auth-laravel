@@ -27,6 +27,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(NotasController::class)->group(function () {
         Route::get('/notas', 'getAll')->middleware('auth:sanctum');
         Route::post('/notas', 'save')->middleware('auth:sanctum');
+        Route::get('/notas/{id}', 'getById')->middleware('auth:sanctum');
+        Route::put('/notas/{id}', 'update')->middleware('auth:sanctum');
     });
 });
 

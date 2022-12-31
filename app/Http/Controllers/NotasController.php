@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notas;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class NotasController extends Controller
 {
@@ -25,26 +25,31 @@ class NotasController extends Controller
 
     public function getById(int $not_ide)
     {
-        try {
-            $nota = Notas::all()->sole('not_ide', '=', $not_ide);
-        } catch (\Illuminate\Support\ItemNotFoundException $_) {
-            return $this->response([], 404, 'Elemento no encontrado');
-        } catch (\Throwable $th) {
-            return $this->response([], 500);
-        }
+        // try {
+            // $nota = Notas::all()->sole('not_ide', '=', $not_ide);
+            $nota = DB::selectOne('select * from notas where not_ide = ?',
+            [$not_ide]);
+            throw_if(is_null($nota), new HttpException(404));
+            //throw_if(is_null($nota), new ItemNotFoundException);
+        // } catch (\Illuminate\Support\ItemNotFoundException $_) {
+            // return $this->response([], 404, 'Elemento no encontrado');
+        // } catch (\Throwable $th) {
+            // return $this->response([], 500);
+        // }
         $response = Gate::inspect('getNota', [$nota]);
         $message = $response->message();
         $status = $response->code();
-        if ($response->denied()) return $this->response([], $status, $message);
-        $data = $nota->toArray();
+        throw_if($response->denied(), new HttpException($status, $message));
+        $data = $nota;
         return $this->response($data, $status, $message);
+        return $this->response($data, 200, 'Message Empty');
     }
 
     public function save(Request $request)
     {
         $validator = validator($request->all(), ['not_tit' => 'required|string'], [], ['not_tit' => 'Título']);
         $response = Gate::inspect('createNotas');
-        if ($response->denied()) return $this->response([], $response->code(), $response->message());
+        throw_if($response->denied(), new HttpException(403, $response->message()));
         $user = Auth::user();
         if ($validator->fails()) {
             return $validator->errors();
@@ -56,10 +61,10 @@ class NotasController extends Controller
 
     public function update(Request $request, int $not_ide)
     {
-        $validator = validator($request->all(), ['not_tit' => 'string'], [], ['not_tit' => 'Título']);
+        $validator = validator($request->all(), ['not_tit' => 'string', 'not_des' => 'string'], [], ['not_tit' => 'Título']);
         $nota = Notas::all()->sole('not_ide', '=', $not_ide);
         $response = Gate::inspect('updateNotas', [$nota]);
-        if ($response->denied()) return $this->response([], $response->code(), $response->message());
+        throw_if($response->denied(), new HttpException(403, $response->message()));
         if ($validator->fails()) {
             return $validator->errors();
         }

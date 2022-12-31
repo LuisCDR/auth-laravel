@@ -23,7 +23,7 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('/logout', [AuthController::class, 'logout']);
     Route::controller(NotasController::class)->group(function () {
         Route::get('/notas', 'getAll')->middleware('auth:sanctum');
         Route::post('/notas', 'save')->middleware('auth:sanctum');

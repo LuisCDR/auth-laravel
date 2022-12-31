@@ -6,6 +6,7 @@ use App\Models\Notas;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Support\Arr;
+use Symfony\Component\HttpFoundation\Response;
 
 class NotasPolicy
 {
@@ -28,12 +29,12 @@ class NotasPolicy
      * Determine whether the user can view the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Notas  $notas
+     * @param  \App\Models\Notas|array  $notas
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function view(User $user, Notas $notas)
+    public function view(User $user, $notas)
     {
-        return $user->usu_ide === $notas->not_usu 
+        return $user->usu_ide === $notas->not_usu
         ? $this->allow('Acceso permitido', 200)
         : $this->deny('Acceso denegado', 403);
     }
@@ -60,7 +61,7 @@ class NotasPolicy
     {
         return $user->usu_ide === $notas->not_usu 
         ? $this->allow()
-        : $this->deny('Acción no autorizada', 403);
+        : $this->deny('Acción no autorizada');
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -37,12 +38,14 @@ class AuthController extends Controller
                 if ($user && Hash::check($data['usu_pas'], $user->usu_pas)) {
                     Auth::login($user);
                     $token = $user->createToken($user->usu_usu)->plainTextToken;
+                    Log::info("{$user->usu_usu} ingresó, bienvenido!");
                     return response()->json([
                         "message" => "login successful",
                         "auth_token" => $token,
                         "token_type" => "Bearer"
                     ]);
                 }
+                Log::alert("credentials are incorrect");
                 return "credentials are incorrect";
 
             } catch (\Throwable $th) {

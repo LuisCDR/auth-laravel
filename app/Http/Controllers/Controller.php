@@ -18,7 +18,7 @@ class Controller extends BaseController
     protected function response($data, int $status, string $message = '')
     {
         $success = $status <= 400;
-        $message = $status == 500 && $message == '' ? 'OCURRIÓ UN ERROR EN EL SISTEMA' : $message;
+        // $message = $status == 500 && $message == '' ? 'OCURRIÓ UN ERROR EN EL SISTEMA' : $message;
         $data = [
             'success' => $success,
             'message' => $message,

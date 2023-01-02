@@ -62,7 +62,7 @@ class Handler extends ExceptionHandler
         })
         ->renderable(function (QueryException $e) {
             report($e);
-            return $this->response(500, "OCURRIÓ UN ERROR EN EL SISTEMA");
+            return $this->response(500, "System Error: {$e->getMessage()}", $e->getTrace());
         });
     }
 

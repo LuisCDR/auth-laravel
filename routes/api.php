@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\NotasController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +21,11 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/register', 'register');
     Route::any('/unauthorized', 'unauthorized')->name('unauthorized');
     // Route::post('/logout', 'logout')->name('logout');
+});
+
+Route::controller(FileController::class)->group(function() {
+    Route::post('/upload', 'upload');
+    Route::get('/file/{id}', 'showFile');
 });
 
 Route::middleware('auth:sanctum')->group(function () {

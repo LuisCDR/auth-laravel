@@ -20,9 +20,15 @@ class FileController extends Controller
 
     public function upload(Request $request)
     {
+        $host = env('DB_HOST');
+        $port = env('DB_PORT');
+        $dbname = env('DB_DATABASE');
+        $user = env('DB_USERNAME');
+        $password = env('DB_PASSWORD');
         $file = $request->file('file');
+        $dbcon = pg_connect("host=$host port=$port dbname=$dbname user=$user password=$password");
         // $fil_byt = pg_escape_bytea($dbcon, $file->get());
-        $fil_byt = pg_escape_bytea($file->get());
+        $fil_byt = pg_escape_bytea(file_get_contents($file->getRealPath()));
         $fil_ext = $file->extension();
         $fil_typ = $file->getMimeType();
         $fil_siz = $file->getSize();

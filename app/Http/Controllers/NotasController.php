@@ -8,7 +8,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class NotasController extends Controller
 {
@@ -21,6 +24,11 @@ class NotasController extends Controller
         if ($response->denied()) return $this->response($byUser, 200, $response->message());
         $all = $data->paginate(10);
         return $this->response($all, 200, $response->message());
+    }
+
+    public function index()
+    {
+        return view('form');
     }
 
     public function getById(int $not_ide)
@@ -51,12 +59,49 @@ class NotasController extends Controller
         $response = Gate::inspect('createNotas');
         throw_if($response->denied(), new HttpException(403, $response->message()));
         $user = Auth::user();
-        if ($validator->fails()) {
-            return $validator->errors();
+        if ($this->up($validator->validate())) {
+            return $this->response([], 201, 'Nota creada');
         }
-        $data = Arr::add($validator->validated(), 'not_usu', $user->usu_ide);
-        DB::table('notas')->insert($data);
-        return $this->response([], 201, 'Nota creada');
+        return $this->response([], 500, 'fallo');
+    }
+
+    private function up(array $validate)
+    {
+        $user = Auth::user();
+        $data = Arr::add($validate, 'not_usu', $user->usu_ide ?? 2);
+        return DB::table('notas')->insert($data);
+    }
+
+    public function perform(Request $request)
+    {
+        $validator = validator(
+            $request->all(), 
+            [
+                'not_tit' => 'required|string',
+                'not_des' => 'nullable|string'
+            ], 
+            [], 
+            [
+                'not_tit' => 'Titulo',
+                'not_des' => 'Descripcion'
+            ]
+        );
+        switch ($request->input('action')) {
+            case 'store':
+                return $this->store($validator->validate());
+            case 'export':
+                return $this->exportToExcel($validator->validate());
+            default:
+                break;
+        }
+    }
+
+    public function store($validator)
+    {
+        if ($this->up($validator)) {
+            return redirect('notas')->with('success', 'createdo');
+        }
+        return redirect('notas')->with('error', 'fallo');
     }
 
     public function update(Request $request, int $not_ide)
@@ -71,5 +116,23 @@ class NotasController extends Controller
         $valid = $validator->validated();
         DB::table('notas')->where('not_ide', $not_ide)->update($valid);
         return $this->response([], 200, 'Nota actualizada');
+    }
+
+    public function exportToExcel(array $validate)
+    {
+        $ss = new Spreadsheet();
+        $s = $ss->getActiveSheet();
+        $s->setCellValue('A1', 'Titulo');
+        $s->setCellValue('A2', Arr::get($validate, 'not_tit'));
+        $s->setCellValue('B1', 'Description');
+        $s->setCellValue('B2', Arr::get($validate, 'not_des', 'null'));
+
+        $ext = 'Xlsx';
+        $write = IOFactory::createWriter($ss, $ext);
+        $filename = 'nota';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header("Content-Disposition: attachment; filename=$filename.$ext");
+        $write->save('php://output');
+        exit();
     }
 }

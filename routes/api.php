@@ -40,7 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Route::controller(NotasController::class)->group(function () {
 //     Route::get('/notas', 'getAll');
-//     Route::post('/notas', 'save');
+    // Route::post('/notas', 'exportToExcel');
 // });
 // });
 // Route::middleware('auth:api')->get('/user', function (Request $request) {

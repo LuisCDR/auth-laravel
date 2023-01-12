@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Models\User;
+use App\Rules\EmailCheck;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -73,7 +74,6 @@ class AuthController extends Controller
         } else {
             $data = $validator->validated();
             $user = (new CreateNewUser)->create($data);
-            return response()->json([], 201);
         }
     }
 
@@ -89,7 +89,11 @@ class AuthController extends Controller
     private function rules()
     {
         return [
-            'usu_usu' => 'required|string',
+            'usu_usu' => [
+                'required',
+                'email:rfc,dns',
+                new EmailCheck
+            ],
             'usu_pas' => 'required|string',
             'per_ide' => [
                 Rule::requiredIf(request()->routeIs('/register'))

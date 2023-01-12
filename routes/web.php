@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\NotasController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('notas', [NotasController::class, 'index']);
+Route::post('perform', [NotasController::class, 'perform'])->name('perform');
+// Route::post('export', [NotasController::class, 'exportToExcel'])->name('export');

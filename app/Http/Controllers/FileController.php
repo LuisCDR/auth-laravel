@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\ItemNotFoundException;
 use Illuminate\Support\Str;
 
 class FileController extends Controller
@@ -11,11 +12,15 @@ class FileController extends Controller
     public function showFile(Request $request, int $fil_ide)
     {
         $file = DB::selectOne('select * from files where fil_ide = ?', [$fil_ide]);
-        // return get_resource_type($file->fil_byt);
-        
-        // $fil_con = pg_unescape_bytea($file->fil_con);
-        $fil_con = fread($file->fil_byt, $file->fil_siz);
-        return response($fil_con)->header('Content-Type', $file->fil_typ);
+        throw_if(is_null($file), new ItemNotFoundException("ARCHIVO NO ENCONTRADO"));
+        // $content = fread($file->fil_byt, $file->fil_siz);
+        $content = stream_get_contents($file->fil_byt, $file->fil_siz);
+        return response()->streamDownload(
+            function () use($content) { echo $content; }, 
+            $file->fil_nam, 
+            ['Content-Type' => $file->fil_typ], 
+            'inline'
+        );
     }
 
     public function upload(Request $request)

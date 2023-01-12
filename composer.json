@@ -15,7 +15,9 @@
         "laravel/fortify": "^1.14",
         "laravel/framework": "^8.0",
         "laravel/sanctum": "^2.15",
-        "laravel/tinker": "^2.0"
+        "laravel/tinker": "^2.0",
+        "pear/net_dns2": "^1.5",
+        "phpoffice/phpspreadsheet": "^1.26"
     },
     "require-dev": {
         "facade/ignition": "^2.3.6",

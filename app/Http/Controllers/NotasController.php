@@ -8,6 +8,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use PhpOffice\PhpSpreadsheet\Cell\CellAddress;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -17,18 +18,25 @@ class NotasController extends Controller
 {
     public function getAll()
     {
+        $data = $this->get();
+        return $this->response($data[0]->paginate(10), 200, $data[1]);
+    }
+
+    private function get()
+    {
         $data = DB::table('notas');
         $response = Gate::inspect('viewAnyNotas');
-        $usu_ide = Auth::id();
-        $byUser = $data->where('not_usu', $usu_ide)->paginate(10);
-        if ($response->denied()) return $this->response($byUser, 200, $response->message());
-        $all = $data->paginate(10);
-        return $this->response($all, 200, $response->message());
+        $usu_ide = Auth::id() ?? 2;
+        $byUser = $data->where('not_usu', $usu_ide);
+        return [$response->denied() ? $byUser : $data, $response->message()];
     }
 
     public function index()
     {
-        return view('form');
+        $data = $this->get();
+        return view('form')
+            ->with('notas', $data[0]->get()->toArray())
+            ->with('message', $data[1]);
     }
 
     public function getById(int $not_ide)
@@ -86,22 +94,23 @@ class NotasController extends Controller
                 'not_des' => 'Descripcion'
             ]
         );
-        switch ($request->input('action')) {
-            case 'store':
-                return $this->store($validator->validate());
-            case 'export':
-                return $this->exportToExcel($validator->validate());
-            default:
-                break;
-        }
+        return $this->store($validator->validate());
+        // switch ($request->input('action')) {
+        //     case 'store':
+        //         return $this->store($validator->validate());
+        //     case 'export':
+        //         return $this->exportToExcel($validator->validate());
+        //     default:
+        //         break;
+        // }
     }
 
     public function store($validator)
     {
         if ($this->up($validator)) {
-            return redirect('notas')->with('success', 'createdo');
+            return redirect('notas')->with('success', 'creado');
         }
-        return redirect('notas')->with('error', 'fallo');
+        return redirect('notas')->with('danger', 'fallo');
     }
 
     public function update(Request $request, int $not_ide)
@@ -118,14 +127,38 @@ class NotasController extends Controller
         return $this->response([], 200, 'Nota actualizada');
     }
 
+    public function export(Request $request)
+    {
+        // return $request->all();
+        $validator = validator(
+            $request->all(), 
+            [
+                'not_tit' => 'string',
+                'not_des' => 'string'
+            ], 
+            [], 
+            [
+                'not_tit' => 'Titulo',
+                'not_des' => 'Descripcion'
+            ]
+        );
+        return $this->exportToExcel($validator->validate());
+    }
+
     public function exportToExcel(array $validate)
     {
         $ss = new Spreadsheet();
         $s = $ss->getActiveSheet();
-        $s->setCellValue('A1', 'Titulo');
-        $s->setCellValue('A2', Arr::get($validate, 'not_tit'));
-        $s->setCellValue('B1', 'Description');
-        $s->setCellValue('B2', Arr::get($validate, 'not_des', 'null'));
+        $encabezado = ["Titulo", "Descripción"];
+        $s->fromArray($encabezado, null, 'B1');
+        for ($i=1; $i < count($validate); $i++) {
+            $s->setCellValue([$i+1, $i+1], Arr::get($validate, '*.not_tit'));
+            $s->setCellValue([$i+2, $i+1], Arr::get($validate, '*.not_des'));
+        }
+        // $s->setCellValue('A1', 'Titulo');
+        // $s->setCellValue('A2', Arr::get($validate, 'not_tit'));
+        // $s->setCellValue('B1', 'Description');
+        // $s->setCellValue('B2', Arr::get($validate, 'not_des', 'null'));
 
         $ext = 'Xlsx';
         $write = IOFactory::createWriter($ss, $ext);

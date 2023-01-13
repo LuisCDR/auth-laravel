@@ -20,4 +20,6 @@ Route::get('/', function () {
 
 Route::get('notas', [NotasController::class, 'index']);
 Route::post('perform', [NotasController::class, 'perform'])->name('perform');
+Route::post('export', [NotasController::class, 'export'])->name('export');
+// Route::get('notas/list', [NotasController::class, 'getAll']);
 // Route::post('export', [NotasController::class, 'exportToExcel'])->name('export');

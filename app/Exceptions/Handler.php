@@ -48,6 +48,7 @@ class Handler extends ExceptionHandler
         })
         ->renderable(function (HttpException $e) {
             $status = $e->getStatusCode();
+            $message = $e->getMessage();
             if ($status == 404) {
                 $message = "NO SE ENCONTRÓ EL RECURSO";
                 $status = 404;

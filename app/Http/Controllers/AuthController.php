@@ -92,7 +92,6 @@ class AuthController extends Controller
             'usu_usu' => [
                 'required',
                 'email:rfc,dns',
-                new EmailCheck
             ],
             'usu_pas' => 'required|string',
             'per_ide' => [

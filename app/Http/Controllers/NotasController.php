@@ -58,7 +58,6 @@ class NotasController extends Controller
         throw_if($response->denied(), new HttpException($status, $message));
         $data = $nota;
         return $this->response($data, $status, $message);
-        return $this->response($data, 200, 'Message Empty');
     }
 
     public function save(Request $request)
